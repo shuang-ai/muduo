@@ -144,3 +144,4 @@ void EventLoop::doPendingFunctors() {
   }
   callingPendingFunctors_ = false;
 }
+
