@@ -5,7 +5,10 @@
 // #include <algorithm>
 #include <atomic>
 #include <functional>
+#include <mutex>
+#include<vector>
 #include <memory>
+
 class Channel;
 class Poller;
 
@@ -46,7 +49,7 @@ private:
   void handleRead();
   // 执行回调
   void doPendingFunctors();
-  using ChannelList = std::function<Channel*>;
+  using ChannelList = std::vector<Channel*>;
   
   // 判断是否还在循环运行
   std::atomic_bool looping_;
@@ -64,7 +67,17 @@ private:
   // 主要作用，当mainLoop获取一个新用户的channel，
   // 通过轮询算法选择一个subloop，通过该成员唤醒subloop处理channel
   int wakeupFd_;
+  // 把 wakeupFd_ 这个文件描述符统一纳入事件循环管理
   std::unique_ptr<Channel> wakeupChannel_;
   
+  // 存放活跃事件
+  ChannelList activeChannels_;
 
+  // 标识当前loop是否有需要执行的回调操作
+  std::atomic_bool callingPendingFunctors_;
+  // 存储loop需要执行的所有的回调操作
+  // pendingFunctors_ 是一个任务队列 ，存放其他线程想让这个 EventLoop 执行的函数 。
+  std::vector<Functor> pendingFunctors_;
+  // 互斥锁，用来保护上面vector容器的线程安全操作
+  std::mutex mutex_;
 };

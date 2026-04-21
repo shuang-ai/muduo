@@ -14,6 +14,11 @@ public:
   // 读事件回调函数
   using ReadEventCallback = std::function<void(Timestamp)>;
 
+  // loop表示管理这个通道的事件循环
+  // fd来自三个地方
+// 监听 socket	listenfd（Acceptor 中）	接受新连接
+// 已连接 socket	connfd（TcpConnection 中）	读写数据
+// eventfd	wakeupFd_（EventLoop 中）	跨线程唤醒
   Channel(EventLoop *loop, int fd);
   ~Channel();
 
