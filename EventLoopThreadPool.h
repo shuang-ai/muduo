@@ -1,3 +1,4 @@
+#pragma once
 #include "EventLoop.h"
 #include "EventLoopThread.h"
 #include "noncopyable.h"
