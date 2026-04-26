@@ -2,6 +2,7 @@
 #include <memory>
 #include<sys/epoll.h>
 #include"Logger.h"
+#include "EventLoop.h"
 
 const int Channel::kNoneEvent = 0;
 // EPOLLIN表示可读
@@ -52,12 +53,11 @@ void Channel::handleEvent(Timestamp receiveTime)
 // 根据poller通知的channel发生的具体事件， 由channel负责调用具体的回调操作
 void Channel::handleEventWithGuard(Timestamp receiveTime){
   // 打印日志
-  
   LOG_INFO("channel handleEvent revents:%d\n", revents_);
   // 处理关闭回调
   // POLLHUP 表示“挂起事件”（Hang Up），即对端关闭了连接
-//   对端关闭，但还有数据可读	✅	✅	应该先读数据，再关闭
-// 对端关闭，没有数据了	✅	❌	直接关闭，不需要读
+  //   对端关闭，但还有数据可读	✅	✅	应该先读数据，再关闭
+  //   对端关闭，没有数据了	✅	❌	直接关闭，不需要读
 
   if((revents_ & EPOLLHUP) && !(revents_ & EPOLLIN))
   {
