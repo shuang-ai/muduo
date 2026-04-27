@@ -59,7 +59,7 @@ chmod +x autobuild.sh
 
 库文件位置：/usr/lib/libmy_muduo.so
 
-方式二：手动 CMake 编译
+### 方式二：手动 CMake 编译
 bash
 mkdir build && cd build
 cmake ..
