@@ -1,13 +1,17 @@
-cmake_minimunum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.10)
 project(my_muduo)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-# 设置C++17标准
 set(CMAKE_CXX_STANDARD 17)
-# 编译生成的动态库放在lib下
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
-# 设置调试信息,启动C++17标准
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++17 -fPIC")
-# 定义参与编译的源代码文件
-aux_source_directory(. SRC_LIST)
-#  编译生成动态库
-add_library(my_muduo ${SRC_LIST})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fPIC")
+
+# 头文件目录: include/ (内层 mymuduo 为子目录)
+include_directories(${PROJECT_SOURCE_DIR}/include/mymuduo)
+
+file(GLOB SRC_LIST "${PROJECT_SOURCE_DIR}/src/*.cc")
+add_library(my_muduo SHARED ${SRC_LIST})
