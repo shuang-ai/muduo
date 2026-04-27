@@ -1,4 +1,3 @@
-```markdown
 # my_muduo
 
 基于 C++17 实现的轻量级网络库，参考 muduo 设计，用于学习 Reactor 模型和网络编程。
