@@ -22,6 +22,8 @@ class Socket;
 class TcpConnection : noncopyable, public std::enable_shared_from_this<TcpConnection>
 {
 public:
+    // localAddr表示本地地址（服务器）
+    // peerAddr表示对端地址（客户端）
     TcpConnection(EventLoop *loop, 
                 const std::string &name, 
                 int sockfd,
@@ -61,6 +63,7 @@ public:
     // 连接销毁
     void connectDestroyed();
 private:
+        // 断开连接，正在连接，已连接，正在断开连接
     enum StateE {kDisconnected, kConnecting, kConnected, kDisconnecting};
     void setState(StateE state) { state_ = state; }
 

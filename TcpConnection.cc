@@ -87,65 +87,75 @@ void TcpConnection::send(const std::string &buf)
  */ 
 void TcpConnection::sendInLoop(const void* data, size_t len)
 {
+    // nwrote：本次 write 调用实际写入的字节数
     ssize_t nwrote = 0;
+    // remaining：剩余未发送的字节数
     size_t remaining = len;
+    // faultError：是否发生致命错误（如连接断开）
     bool faultError = false;
 
-    // 之前调用过该connection的shutdown，不能再进行发送了
+    // 如果连接已经处于断开状态，不再发送数据
     if (state_ == kDisconnected)
     {
         LOG_ERROR("disconnected, give up writing!");
         return;
     }
 
-    // 表示channel_第一次开始写数据，而且缓冲区没有待发送数据
+    // 当 channel 当前没有关注可写事件（即没有积压数据），并且输出缓冲区为空时
+    // 说明这是新数据，且没有历史遗留，可以直接尝试写入 socket
     if (!channel_->isWriting() && outputBuffer_.readableBytes() == 0)
     {
+        // 尝试将数据直接写入 socket（非阻塞写）
         nwrote = ::write(channel_->fd(), data, len);
         if (nwrote >= 0)
         {
+            // 写入成功，计算剩余未写入的字节数
             remaining = len - nwrote;
             if (remaining == 0 && writeCompleteCallback_)
             {
-                // 既然在这里数据全部发送完成，就不用再给channel设置epollout事件了
+                // 如果所有数据都已写完，且用户注册了写完成回调，则将该回调放入 loop 队列执行
                 loop_->queueInLoop(
                     std::bind(writeCompleteCallback_, shared_from_this())
                 );
             }
         }
-        else // nwrote < 0
+        else // nwrote < 0 表示 write 出错
         {
-            nwrote = 0;
+            nwrote = 0;  // 没有写入任何数据
             if (errno != EWOULDBLOCK)
             {
+                // 如果不是因为发送缓冲区满（EWOULDBLOCK），则是其他错误
                 LOG_ERROR("TcpConnection::sendInLoop");
-                if (errno == EPIPE || errno == ECONNRESET) // SIGPIPE  RESET
+                if (errno == EPIPE || errno == ECONNRESET) // 对端关闭或连接复位
                 {
-                    faultError = true;
+                    faultError = true;  // 标记致命错误
                 }
             }
         }
     }
 
-    // 说明当前这一次write，并没有把数据全部发送出去，剩余的数据需要保存到缓冲区当中，然后给channel
-    // 注册epollout事件，poller发现tcp的发送缓冲区有空间，会通知相应的sock-channel，调用writeCallback_回调方法
-    // 也就是调用TcpConnection::handleWrite方法，把发送缓冲区中的数据全部发送完成
+    // 如果没有发生致命错误，并且还有数据未发送（remaining > 0）
     if (!faultError && remaining > 0) 
     {
-        // 目前发送缓冲区剩余的待发送数据的长度
+        // 获取输出缓冲区中已有的数据长度（积压数据）
         size_t oldLen = outputBuffer_.readableBytes();
+        // 检查新数据加上旧数据是否会超过高水位标记，并且之前未超过，且用户设置了高水位回调
         if (oldLen + remaining >= highWaterMark_
             && oldLen < highWaterMark_
             && highWaterMarkCallback_)
         {
+            // 触发高水位回调（放入队列，避免直接调用）
             loop_->queueInLoop(
                 std::bind(highWaterMarkCallback_, shared_from_this(), oldLen+remaining)
             );
         }
+        // 将剩余未发送的数据追加到输出缓冲区
         outputBuffer_.append((char*)data + nwrote, remaining);
+        // 如果 channel 当前没有关注可写事件，则注册可写事件
+        // 这样当 socket 发送缓冲区有空间时，Poller 会触发可写，调用 handleWrite 继续发送
         if (!channel_->isWriting())
         {
-            channel_->enableWriting(); // 这里一定要注册channel的写事件，否则poller不会给channel通知epollout
+            channel_->enableWriting();
         }
     }
 }
@@ -174,6 +184,7 @@ void TcpConnection::shutdownInLoop()
 void TcpConnection::connectEstablished()
 {
     setState(kConnected);
+    // 将 TcpConnection 自身的 shared_ptr 绑定到 Channel 中，防止在事件处理过程中
     channel_->tie(shared_from_this());
     channel_->enableReading(); // 向poller注册channel的epollin事件
 

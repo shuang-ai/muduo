@@ -100,6 +100,24 @@ void EventLoop::runInLoop(Functor cb) {
   }
 }
 
+// 把cb放入队列中，唤醒loop所在的线程，执行cb
+void EventLoop::queueInLoop(Functor cb)
+{
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        pendingFunctors_.emplace_back(cb);
+    }
+
+    // 唤醒相应的，需要执行上面回调操作的loop的线程了
+    // 若不在当前的线程则需要唤醒loop所在的线程
+    // 或者 loop 线程正在执行上一批回调（此时新加的任务不会被立即执行，需要唤醒让它再执行一轮）
+    if (!isInLoopThread() || callingPendingFunctors_) 
+    {
+        wakeup(); // 唤醒loop所在线程
+    }
+}
+
+
 void EventLoop::handleRead() {
   uint64_t one = 1;
   // wakeupFd_ 是通过 eventfd 创建的文件描述符，
@@ -143,5 +161,16 @@ void EventLoop::doPendingFunctors() {
     functor();
   }
   callingPendingFunctors_ = false;
+}
+
+// 用来唤醒loop所在的线程的  向wakeupfd_写一个数据，wakeupChannel就发生读事件，当前loop线程就会被唤醒
+void EventLoop::wakeup()
+{
+    uint64_t one = 1;
+    ssize_t n = write(wakeupFd_, &one, sizeof one);
+    if (n != sizeof one)
+    {
+        LOG_ERROR("EventLoop::wakeup() writes %lu bytes instead of 8 \n", n);
+    }
 }
 
