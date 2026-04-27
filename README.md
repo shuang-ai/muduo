@@ -1,3 +1,4 @@
+```markdown
 # my_muduo
 
 基于 C++17 实现的轻量级网络库，参考 muduo 设计，用于学习 Reactor 模型和网络编程。
@@ -43,49 +44,67 @@ my_muduo/
 ├── CMakeLists.txt            # CMake 配置
 └── README.md                 # 项目说明
 ```
-编译安装
-方式一：使用 autobuild.sh（推荐）
-给脚本执行权限：
 
-bash
-chmod +x autobuild.sh
-编译并安装到系统：
+## 编译安装
 
-bash
-./autobuild.sh
-安装后：
+### 方式一：使用 autobuild.sh（推荐）
 
-头文件位置：/usr/include/mymuduo/
+1. 给脚本执行权限：
+   ```bash
+   chmod +x autobuild.sh
+   ```
 
-库文件位置：/usr/lib/libmy_muduo.so
+2. 编译并安装到系统：
+   ```bash
+   ./autobuild.sh
+   ```
 
-方式二：手动 CMake 编译
-bash
+**安装后：**
+- 头文件位置：`/usr/include/mymuduo/`
+- 库文件位置：`/usr/lib/libmy_muduo.so`
+
+### 方式二：手动 CMake 编译
+
+```bash
 mkdir build && cd build
 cmake ..
 make -j$(nproc)
 cd ..
-编译后库文件位于 lib/libmy_muduo.so，头文件位于 include/mymuduo/。
+```
 
-运行示例
-编译示例程序
-bash
+编译后库文件位于 `lib/libmy_muduo.so`，头文件位于 `include/mymuduo/`。
+
+## 运行示例
+
+### 编译示例程序
+
+```bash
 cd example
 make
-启动 EchoServer
-bash
-./echo_server
-输出示例：
+```
 
-text
+### 启动 EchoServer
+
+```bash
+./echo_server
+```
+
+**输出示例：**
+```
 [INFO] 2026/04/27 19:32:43 : EventLoop 0x7f... start looping 
 [INFO] 2026/04/27 19:32:43 : EchoServer is running, listening on 8888
-测试连接
-使用 telnet 或 nc 工具测试：
+```
 
-bash
+### 测试连接
+
+使用 `telnet` 或 `nc` 工具测试：
+
+```bash
 # 方式一：telnet
 telnet localhost 8888
 
 # 方式二：nc (netcat)
 echo "Hello" | nc localhost 8888
+```
+
+```
