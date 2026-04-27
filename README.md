@@ -105,5 +105,3 @@ telnet localhost 8888
 # 方式二：nc (netcat)
 echo "Hello" | nc localhost 8888
 ```
-
-```
