@@ -1,6 +1,7 @@
 #include "Thread.h"
 #include "CurrentThread.h"
 #include <cstdio>
+#include <future>
 #include <memory>
 #include <semaphore.h>
 #include <thread>
@@ -20,25 +21,36 @@ Thread::~Thread() {
   }
 }
 
-// 一个thread对象记录是一个新线程的详细信息
-void Thread::start() {
-  started_ = true;
+// // 一个thread对象记录是一个新线程的详细信息
+// void Thread::start() {
+//   started_ = true;
 
-  // 内部包含资源数量和等待队列
-  // 等待队列中放的是阻塞的线程
-  // 这个sem只是个操作底层消耗量的句柄
-  sem_t sem;
-  thread_ = std::make_shared<std::thread>([this, &sem]() {
-    // 获取线程tid值
-    // 多线程程序，应该要等待这个tid_获取完之后再执行
-    tid_ = CurrentThread::tid();
-    // v操作
-    sem_post(&sem);
-    // 处理线程函数
-    func_();
-  });
-  // 相当于p操作，等待tid_被获取到才被sem_post唤醒
-  sem_wait(&sem);
+//   // 内部包含资源数量和等待队列
+//   // 等待队列中放的是阻塞的线程
+//   // 这个sem只是个操作底层消耗量的句柄
+//   sem_t sem;
+//   thread_ = std::make_shared<std::thread>([this, &sem]() {
+//     // 获取线程tid值
+//     // 多线程程序，应该要等待这个tid_获取完之后再执行
+//     tid_ = CurrentThread::tid();
+//     // v操作
+//     sem_post(&sem);
+//     // 处理线程函数
+//     func_();
+//   });
+//   // 相当于p操作，等待tid_被获取到才被sem_post唤醒
+//   sem_wait(&sem);
+// }
+void Thread::start() {
+    started_ = true;
+    std::promise<void> promise;
+    auto future = promise.get_future();
+    thread_ = std::shared_ptr<std::thread>(new std::thread([this, promise = std::move(promise)]() mutable {
+        tid_ = CurrentThread::tid();
+        promise.set_value();
+        func_();
+    }));
+    future.wait();   // 等待子线程 set_value
 }
 
 void Thread::setDefaultName() {
