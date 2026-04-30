@@ -7,7 +7,7 @@
 const int Channel::kNoneEvent = 0;
 // EPOLLIN表示可读
 // EPOLLPRI表示紧急可读
-// 表示可写
+// EPOLLOUT表示可写
 const int Channel::kReadEvent = EPOLLIN | EPOLLPRI;
 const int Channel::kWriteEvent = EPOLLOUT;
 

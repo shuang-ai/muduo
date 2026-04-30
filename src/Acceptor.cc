@@ -61,6 +61,7 @@ void Acceptor::handleRead()
     else
     {
         LOG_ERROR("%s:%s:%d accept err:%d \n", __FILE__, __FUNCTION__, __LINE__, errno);
+        // 此时说明打开的文件描述符过多
         if (errno == EMFILE)
         {
             LOG_ERROR("%s:%s:%d sockfd reached limit! \n", __FILE__, __FUNCTION__, __LINE__);

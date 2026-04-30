@@ -22,6 +22,11 @@ ssize_t Buffer::readFd(int fd, int* saveErrno)
     vec[1].iov_len = sizeof extrabuf;
     
     const int iovcnt = (writable < sizeof extrabuf) ? 2 : 1;
+    // readv的优势：
+    // 减少系统调用
+    // 减少内存拷贝(可直接写进目标内存池)
+    // 避免频繁扩容 Buffer
+    // 解决“数据大小未知问题”
     const ssize_t n = ::readv(fd, vec, iovcnt);
     if (n < 0)
     {

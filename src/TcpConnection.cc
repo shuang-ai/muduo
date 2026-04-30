@@ -185,6 +185,7 @@ void TcpConnection::connectEstablished()
 {
     setState(kConnected);
     // 将 TcpConnection 自身的 shared_ptr 绑定到 Channel 中，防止在事件处理过程中
+    // TcpConnection被销毁后还被epoll调用
     channel_->tie(shared_from_this());
     channel_->enableReading(); // 向poller注册channel的epollin事件
 
@@ -269,6 +270,7 @@ void TcpConnection::handleClose()
     channel_->disableAll();
 
     TcpConnectionPtr connPtr(shared_from_this());
+// connectionCallback_通知业务层状态变化
     connectionCallback_(connPtr); // 执行连接关闭的回调
     closeCallback_(connPtr); // 关闭连接的回调  执行的是TcpServer::removeConnection回调方法
 }
