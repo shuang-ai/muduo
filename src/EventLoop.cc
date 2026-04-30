@@ -151,7 +151,7 @@ void EventLoop::doPendingFunctors() {
   // 表示执行上一轮其他线程投递到我们这个任务队列pendingFunctors_的任务
   callingPendingFunctors_ = true;
   {
-    std::unique_ptr<std::mutex> lock(&mutex_);
+    std::unique_lock<std::mutex> lock(mutex_);
     // 交换回调函数
     functors.swap(pendingFunctors_);
   }
