@@ -1,6 +1,6 @@
 build/
 lib/
-example/
+example/echo_server
 *.o
 *.so
 .cache/
