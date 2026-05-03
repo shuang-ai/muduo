@@ -45,7 +45,7 @@ void Thread::start() {
     started_ = true;
     std::promise<void> promise;
     auto future = promise.get_future();
-    thread_ = std::shared_ptr<std::thread>(new std::thread([this, promise = std::move(promise)]() mutable {
+    thread_ = std::make_shared<std::thread>(std::thread([this, promise = std::move(promise)]() mutable {
         tid_ = CurrentThread::tid();
         promise.set_value();
         func_();
