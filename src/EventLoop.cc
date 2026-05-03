@@ -10,7 +10,6 @@
 #include <unistd.h>
 #include <vector>
 // 防止一个线程创建多个EventLoop   thread_local
-using std::unique_ptr;
 
 __thread EventLoop *t_loopInThisThread = nullptr;
 
