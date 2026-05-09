@@ -1,6 +1,6 @@
 # my_muduo
 
-一个基于 C++11 实现的轻量级网络库，参考 Muduo 设计，用于深入理解：
+一个基于 C++11 实现的轻量级网络库，参照 Muduo 网络库（https://github.com/chenshuo/muduo）的设计思路与实现方式，重构核心模块。，用于深入理解：
 
 - Reactor 事件驱动模型
 - 多线程 + IO 复用（epoll）
